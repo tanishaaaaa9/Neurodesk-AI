@@ -1,57 +1,132 @@
-# 🧠 Neurodesk-AI 🚀
+<p align="center">
+  <img src="frontend/src/assets/hero.png" alt="NeuroDesk AI" width="120" />
+</p>
+<h1 align="center">NeuroDesk AI</h1>
+<p align="center">
+  A multi-agent AI platform that reads customer emotions, predicts churn in real time, and routes every conversation to the right agent — automatically.
+</p>
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10-blue?style=flat-square&logo=python" />
+  <img src="https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react" />
+  <img src="https://img.shields.io/badge/LLaMA_3.3-70B-8B5CF6?style=flat-square" />
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" />
+</p>
 
-Hey there! Welcome to **Neurodesk-AI**. 
+## What It Does
 
-Basically, this is a super cool project where we have different AI agents teaming up to do awesome stuff. It's got a sleek React frontend where you can see all the magic happen, and a Python backend where the AI brains (like the Orchestrator and the Empath) actually live.
+Most customer support tools react to what a user says. NeuroDesk AI reacts to how they *feel*.
 
-We also built a memory system so the AI actually remembers things from past conversations. Pretty neat, right?
+Every incoming message passes through a 6-agent voting pipeline. Agents score the message independently — for emotion, churn risk, and intent — then the highest-scoring agent takes the conversation. An angry customer with a complaint never gets a sales pitch. A happy customer asking about upgrades never gets routed to a complaint handler.
 
-<!-- 
-Hey! If you want to show off what the dashboard looks like, just put a screenshot named "dashboard.png" inside a "docs" folder, and remove the arrows below!
--->
-<!-- ![Dashboard Preview](docs/dashboard.png) -->
+The result: the right response, from the right agent, every single time.
 
-## ✨ What's cool about it?
-* **Multiple AI Brains:** Different agents handling different tasks so they don't get confused.
-* **React Frontend:** A modern, snappy UI to interact with the agents.
-* **Memory Storage:** It remembers context using local JSON files. No goldfish memory here!
-* **Docker Ready:** If you like containers, we got a `docker-compose` ready to go.
+## Agent Pipeline
 
-## 🛠️ What we used
-* **Frontend:** React, Vite, CSS
-* **Backend:** Python, Flask
-* **The Magic:** Local file memory and AI logic!
+```text
+  Customer Message
+        │
+   ┌────┴────┐
+   │         │
+EMPATH    ORACLE
+(Emotion) (Churn Risk)
+   │         │
+   └────┬────┘
+        │
+   ORCHESTRATOR  ←  Voting system picks the winner
+        │
+   ┌────┼────┐
+   │    │    │
+GUARDIAN SUPPORT CLOSER
+```
 
-## 🎮 How to run it on your machine
+## Agents
 
-Wanna play around with it? Here is how you get it running:
+* 🎭 **EMPATH**: Runs every message through HuggingFace `distilroberta-base` NLP. Fires RED / YELLOW / GREEN / BLUE emotion alerts. Falls back to keyword detection if the API is unavailable.
+* 🔮 **ORACLE**: Scores churn risk from 0–100% using complaint count, emotion history, and interaction frequency. Classifies as LOW / MEDIUM / HIGH / CRITICAL.
+* 🛡️ **GUARDIAN**: Activates on RED alerts or high churn risk. Auto-generates refunds, loyalty coupons, and priority callbacks. Deescalates before damage is done.
+* 💬 **SUPPORT**: Handles general queries with LLaMA 3.3 70B via Groq. Sounds human, not scripted.
+* 💰 **CLOSER**: Upsells only when emotion is GREEN and buying intent is detected. Never pitches to an unhappy customer.
+* 📊 **ANALYST**: Streams live emotion charts, revenue impact, and churn dashboards — refreshed every 3 seconds.
 
-**1. Grab the code**
+## Tech Stack
+
+| Layer | Technology |
+| --- | --- |
+| **Backend** | Python 3.10, Flask, Flask-CORS |
+| **AI Inference** | Groq API — LLaMA 3.3 70B |
+| **Emotion Model** | HuggingFace — j-hartmann/emotion-english-distilroberta-base |
+| **Frontend** | React 18, Vite, Framer Motion, Recharts |
+| **Memory** | JSON-based persistent customer state |
+| **Infra** | Docker, Docker Compose |
+
+## Project Structure
+
+```text
+neurodesk-ai/
+├── agents/
+│   ├── orchestrator.py     # Voting logic + agent routing
+│   ├── empath.py           # Emotion detection
+│   └── oracle.py           # Churn risk scoring
+├── api/
+│   └── app.py              # Flask REST API
+├── memory/
+│   ├── memory.py           # Customer read/write helpers
+│   └── customers.json      # Persistent customer state
+├── frontend/
+│   └── src/
+│       ├── App.jsx         # War Room — main chat UI
+│       └── LandingPage.jsx
+├── Dockerfile
+├── docker-compose.yml
+└── requirements.txt
+```
+
+## Getting Started
+
+### Prerequisites
+
+* Python 3.10+
+* Node.js 20+
+* Groq API key — free tier is enough
+* HuggingFace API key — optional, keyword fallback works without it
+
+### Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+GROQ_API_KEY=your_groq_api_key
+HUGGINGFACE_API_KEY=your_huggingface_api_key   # optional
+```
+
+### Run with Docker
+
 ```bash
 git clone https://github.com/tanishaaaaa9/Neurodesk-AI.git
 cd Neurodesk-AI
+docker-compose up --build
 ```
 
-**2. Start the Python Backend**
+**Frontend** → `http://localhost:5173` · **Backend** → `http://localhost:5000`
+
+### Run Manually
+
+**Backend**
+
 ```bash
 python -m venv venv
-# On Windows run this:
-venv\Scripts\activate
-# On Mac/Linux run this:
-source venv/bin/activate
-
+source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+python api/app.py
 ```
 
-**3. Start the React Frontend**
-Open a *new* terminal window, then:
+**Frontend** — new terminal
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Boom! You're good to go. 
 
-## ✌️ Contributing
-If you're on the team and want to add stuff, make sure you create a new branch first!
-`git checkout -b your-cool-feature`
+<p align="center">Built with Python · React · LLaMA 3.3 · HuggingFace</p>
