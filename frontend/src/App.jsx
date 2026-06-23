@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BrainCircuit, MessageSquare, IndianRupee, Handshake, ShieldAlert, Activity, User, Send, BarChart3, TrendingUp, Mic, Database, X, Bell, Volume2, VolumeX, Rocket } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const AGENTS = [
   { id: 'EMPATH', role: 'Emotion Detection', emoji: '🎭', color: '#ef4444' },
   { id: 'ORACLE', role: 'Churn Prediction', emoji: '🔮', color: '#8b5cf6' },
@@ -52,7 +54,7 @@ export default function App() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch('http://localhost:5000/dashboard');
+        const res = await fetch(`${API_URL}/dashboard`);
         const data = await res.json();
         setStats(data.stats);
         
@@ -162,7 +164,7 @@ export default function App() {
 
   const loadCustomerVault = async (id) => {
     try {
-      const res = await fetch('http://localhost:5000/customers');
+      const res = await fetch(`${API_URL}/customers`);
       const data = await res.json();
       const customer = data.find(c => c.id === id);
       if(customer) {
@@ -181,7 +183,7 @@ export default function App() {
     setIsTyping(true);
 
     try {
-      const res = await fetch('http://localhost:5000/chat', {
+      const res = await fetch(`${API_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customer_id: id, customer_name: name, message: text })

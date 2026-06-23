@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: neurodesk-ai-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python api/app.py
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: HUGGINGFACE_API_KEY
+        sync: false
+    autoDeploy: true
