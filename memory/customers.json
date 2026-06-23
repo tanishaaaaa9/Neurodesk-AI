@@ -1,0 +1,95 @@
+{
+  "C001": {
+    "id": "C001",
+    "name": "Priya",
+    "interactions": 12,
+    "emotion_history": [
+      "angry",
+      "neutral",
+      "angry",
+      "angry",
+      "angry",
+      "angry",
+      "neutral",
+      "neutral",
+      "angry",
+      "neutral",
+      "neutral",
+      "angry"
+    ],
+    "churn_risk": 70,
+    "complaints": 7,
+    "compensation_given": [
+      "Refund initiated + Coupon generated",
+      "Refund initiated + Coupon generated",
+      "Refund initiated + Coupon generated",
+      "Refund initiated + Coupon generated",
+      "Refund initiated + Coupon generated",
+      "Refund initiated + Coupon generated",
+      "Refund initiated + Coupon generated",
+      "Refund initiated + Coupon generated"
+    ],
+    "lifetime_value": 0,
+    "notes": ""
+  },
+  "C002": {
+    "id": "C002",
+    "name": "Rahul",
+    "interactions": 3,
+    "emotion_history": [
+      "happy",
+      "neutral",
+      "happy"
+    ],
+    "churn_risk": 0,
+    "complaints": 0,
+    "compensation_given": [],
+    "lifetime_value": 0,
+    "notes": ""
+  },
+  "C003": {
+    "id": "C003",
+    "name": "Amit",
+    "interactions": 3,
+    "emotion_history": [
+      "neutral",
+      "neutral",
+      "neutral"
+    ],
+    "churn_risk": 0,
+    "complaints": 0,
+    "compensation_given": [],
+    "lifetime_value": 0,
+    "notes": ""
+  },
+  "C004": {
+    "id": "C004",
+    "name": "Neha",
+    "interactions": 2,
+    "emotion_history": [
+      "angry",
+      "angry"
+    ],
+    "churn_risk": 2,
+    "complaints": 2,
+    "compensation_given": [
+      "Refund initiated + Coupon generated",
+      "Refund initiated + Coupon generated"
+    ],
+    "lifetime_value": 0,
+    "notes": ""
+  },
+  "C006": {
+    "id": "C006",
+    "name": "Riya",
+    "interactions": 1,
+    "emotion_history": [
+      "neutral"
+    ],
+    "churn_risk": 0,
+    "complaints": 0,
+    "compensation_given": [],
+    "lifetime_value": 0,
+    "notes": ""
+  }
+}

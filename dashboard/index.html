@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuroDesk AI — War Room</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    background: #080818;
+    color: #ffffff;
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #0d0d2b, #1a1a4e);
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #3a3aff;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo { font-size: 22px; font-weight: 800; color: #4af; letter-spacing: 1px; }
+  .logo span { color: #fff; }
+  .live-indicator { display: flex; align-items: center; gap: 8px; }
+  .live-dot {
+    width: 10px; height: 10px;
+    background: #00ff88;
+    border-radius: 50%;
+    animation: pulse 1.2s infinite;
+    box-shadow: 0 0 10px #00ff88;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+  .clock { color: #888; font-size: 13px; margin-left: 15px; }
+
+  /* STATS GRID */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    padding: 20px 30px;
+  }
+  .stat-card {
+    background: linear-gradient(135deg, #0f0f2e, #1a1a40);
+    border: 1px solid #2a2a6e;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card:hover { transform: translateY(-3px); }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+  }
+  .stat-number {
+    font-size: 38px;
+    font-weight: 900;
+    color: var(--accent);
+    display: block;
+    margin: 5px 0;
+  }
+  .stat-label { color: #8888aa; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .stat-icon { font-size: 24px; }
+
+  /* AGENTS ROW */
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #4af;
+    padding: 0 30px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  .agents-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    padding: 0 30px 20px;
+  }
+  .agent-card {
+    background: #0f0f2e;
+    border: 1px solid #2a2a6e;
+    border-radius: 12px;
+    padding: 15px 10px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+  .agent-card.active {
+    border-color: var(--color);
+    box-shadow: 0 0 15px var(--color)44;
+  }
+  .agent-emoji { font-size: 24px; }
+  .agent-name { font-size: 11px; font-weight: 700; margin: 5px 0 3px; color: var(--color); }
+  .agent-role { font-size: 9px; color: #666; }
+  .agent-status { font-size: 10px; color: #00ff88; margin-top: 5px; }
+
+  /* MAIN AREA */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 0 30px 30px;
+  }
+
+  /* CHAT */
+  .panel {
+    background: #0f0f2e;
+    border: 1px solid #2a2a6e;
+    border-radius: 15px;
+    padding: 20px;
+  }
+  .panel-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #4af;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #2a2a6e;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .chat-messages {
+    height: 300px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    padding-right: 5px;
+  }
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-thumb { background: #3a3aff; border-radius: 2px; }
+  .message {
+    margin: 10px 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: 85%;
+    animation: fadeIn 0.3s;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+  .msg-customer {
+    background: #1a3a6e;
+    margin-left: auto;
+    border-bottom-right-radius: 3px;
+  }
+  .msg-ai {
+    background: #1a1a4e;
+    border-bottom-left-radius: 3px;
+    border-left: 3px solid #3a3aff;
+  }
+  .msg-compensation {
+    background: #0a3a0a;
+    border-left: 3px solid #00ff88;
+    font-size: 12px;
+  }
+  .msg-sender {
+    font-size: 10px;
+    color: #666;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .msg-thinking {
+    background: #1a1a3a;
+    color: #4af;
+    font-style: italic;
+    animation: thinking 1s infinite;
+  }
+  @keyframes thinking { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  /* INPUT */
+  .input-group { margin-bottom: 10px; }
+  .input-group label { font-size: 11px; color: #888; display: block; margin-bottom: 4px; }
+  input[type="text"] {
+    width: 100%;
+    padding: 10px 14px;
+    background: #080818;
+    border: 1px solid #3a3aff55;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]:focus { border-color: #3a3aff; }
+  .send-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #3a3aff, #6a3aff);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+    margin-top: 5px;
+  }
+  .send-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px #3a3aff66; }
+  .send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* QUICK DEMO BUTTONS */
+  .demo-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .demo-btn {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid;
+    background: transparent;
+    color: #fff;
+    font-size: 11px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+  }
+  .demo-btn:hover { transform: translateX(3px); }
+  .demo-btn.angry { border-color: #f44; color: #f44; }
+  .demo-btn.angry:hover { background: #f442; }
+  .demo-btn.happy { border-color: #4f4; color: #4f4; }
+  .demo-btn.happy:hover { background: #4f42; }
+  .demo-btn.neutral { border-color: #4af; color: #4af; }
+  .demo-btn.neutral:hover { background: #4af2; }
+
+  /* AGENT ANALYSIS PANEL */
+  .analysis-item {
+    background: #080818;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 1px solid #2a2a6e;
+  }
+  .analysis-label { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+  .analysis-value { font-size: 14px; font-weight: 600; }
+  .vote-bars { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
+  .vote-bar-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .vote-bar-label { width: 80px; color: #888; }
+  .vote-bar-track { flex: 1; height: 8px; background: #1a1a3a; border-radius: 4px; overflow: hidden; }
+  .vote-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+  .vote-bar-num { width: 20px; text-align: right; color: #4af; font-weight: 700; }
+  .churn-meter { margin-top: 8px; }
+  .churn-track { width: 100%; height: 12px; background: #1a1a3a; border-radius: 6px; overflow: hidden; }
+  .churn-fill { height: 100%; border-radius: 6px; transition: width 1s; }
+  .winner-badge {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 1200px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .agents-row { grid-template-columns: repeat(3, 1fr); }
+    .main-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">🧠 Neuro<span>Desk</span> AI <span style="font-size:13px;color:#666;font-weight:400"> — Autonomous Workforce Platform</span></div>
+  <div class="live-indicator">
+    <div class="live-dot"></div>
+    <span style="color:#00ff88;font-size:12px;font-weight:700">LIVE</span>
+    <span class="clock" id="clock"></span>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-grid">
+  <div class="stat-card" style="--accent:#4af">
+    <div class="stat-icon">💬</div>
+    <span class="stat-number" id="statActive">0</span>
+    <div class="stat-label">Conversations Handled</div>
+  </div>
+  <div class="stat-card" style="--accent:#00ff88">
+    <div class="stat-icon">💰</div>
+    <span class="stat-number" id="statRevenue">₹0</span>
+    <div class="stat-label">Revenue Saved</div>
+  </div>
+  <div class="stat-card" style="--accent:#fa4">
+    <div class="stat-icon">🤝</div>
+    <span class="stat-number" id="statDeals">0</span>
+    <div class="stat-label">Deals Closed by AI</div>
+  </div>
+  <div class="stat-card" style="--accent:#f44">
+    <div class="stat-icon">🛡️</div>
+    <span class="stat-number" id="statResolved">0</span>
+    <div class="stat-label">Complaints Resolved</div>
+  </div>
+</div>
+
+<!-- AGENTS -->
+<div class="section-title">⚡ Active AI Agents</div>
+<div class="agents-row">
+  <div class="agent-card active" style="--color:#f44" id="agentEmpath">
+    <div class="agent-emoji">🎭</div>
+    <div class="agent-name">EMPATH</div>
+    <div class="agent-role">Emotion Detection</div>
+    <div class="agent-status">✅ Active</div>
+  </div>
+  <div class="agent-card active" style="--color:#a44fff" id="agentOracle">
+    <div class="agent-emoji">🔮</div>
+    <div class="agent-name">ORACLE</div>
+    <div class="agent-role">Churn Prediction</div>
+    <div class="agent-status">✅ Active</div>
+  </div>
+  <div class="agent-card active" style="--color:#4af" id="agentSupport">
+    <div class="agent-emoji">💬</div>
+    <div class="agent-name">SUPPORT</div>
+    <div class="agent-role">Customer Response</div>
+    <div class="agent-status">✅ Active</div>
+  </div>
+  <div class="agent-card active" style="--color:#00ff88" id="agentCloser">
+    <div class="agent-emoji">💰</div>
+    <div class="agent-name">CLOSER</div>
+    <div class="agent-role">Sales & Upselling</div>
+    <div class="agent-status">✅ Active</div>
+  </div>
+  <div class="agent-card active" style="--color:#fa4" id="agentGuardian">
+    <div class="agent-emoji">🛡️</div>
+    <div class="agent-name">GUARDIAN</div>
+    <div class="agent-role">Complaint Resolution</div>
+    <div class="agent-status">✅ Active</div>
+  </div>
+  <div class="agent-card active" style="--color:#ff4" id="agentAnalyst">
+    <div class="agent-emoji">📊</div>
+    <div class="agent-name">ANALYST</div>
+    <div class="agent-role">Live Analytics</div>
+    <div class="agent-status">✅ Active</div>
+  </div>
+</div>
+
+<!-- MAIN PANELS -->
+<div class="main-grid">
+
+  <!-- CHAT PANEL -->
+  <div class="panel">
+    <div class="panel-title">💬 Live Customer Conversation</div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="message msg-ai">
+        <div class="msg-sender">NEURODESK AI</div>
+        👋 War Room is live. All 6 agents ready. Send a customer message to begin demo.
+      </div>
+    </div>
+    <div class="input-group">
+      <label>Customer Name</label>
+      <input type="text" id="custName" value="Priya Sharma">
+    </div>
+    <div class="input-group">
+      <label>Customer ID</label>
+      <input type="text" id="custId" value="C001">
+    </div>
+    <div class="input-group">
+      <label>Customer Message</label>
+      <input type="text" id="msgInput" placeholder="Type message or use quick demo below..." 
+        onkeypress="if(event.key==='Enter')sendMessage()">
+    </div>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+      ⚡ SEND TO NEURODESK AI
+    </button>
+    
+    <div style="margin-top:15px;">
+      <div style="font-size:10px;color:#666;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Quick Demo Scenarios</div>
+      <div class="demo-btns">
+        <button class="demo-btn angry" onclick="setDemo('Priya Sharma','C001','My order is 5 days late and nobody is helping!! I want a full refund immediately this is pathetic service!!')">
+          😡 Angry Customer — Delayed Order + Refund Demand
+        </button>
+        <button class="demo-btn happy" onclick="setDemo('Rahul Mehta','C002','I love your product! It has been amazing. What premium plans do you offer?')">
+          😊 Happy Customer — Ready to Upgrade
+        </button>
+        <button class="demo-btn neutral" onclick="setDemo('Amit Singh','C003','How do I track my order? I placed it 2 days ago.')">
+          😐 Neutral Customer — Order Tracking Query
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANALYSIS PANEL -->
+  <div class="panel">
+    <div class="panel-title">🧠 Agent Intelligence Analysis</div>
+    
+    <div class="analysis-item">
+      <div class="analysis-label">🎭 EMPATH — Emotion Detected</div>
+      <div class="analysis-value" id="emotionValue" style="color:#888">Waiting for message...</div>
+    </div>
+
+    <div class="analysis-item">
+      <div class="analysis-label">🗳️ Agent Voting Results</div>
+      <div class="vote-bars" id="voteBars">
+        <div style="color:#666;font-size:12px">Votes will appear after message</div>
+      </div>
+    </div>
+
+    <div class="analysis-item">
+      <div class="analysis-label">🏆 Winning Agent</div>
+      <div class="analysis-value" id="winnerValue" style="color:#888">No winner yet</div>
+    </div>
+
+    <div class="analysis-item">
+      <div class="analysis-label">🔮 ORACLE — Churn Risk Score</div>
+      <div class="analysis-value" id="churnValue" style="color:#888">Calculating...</div>
+      <div class="churn-meter">
+        <div class="churn-track">
+          <div class="churn-fill" id="churnBar" style="width:0%;background:#00ff88"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="analysis-item">
+      <div class="analysis-label">📊 ANALYST — Action Taken</div>
+      <div class="analysis-value" id="actionValue" style="color:#888;font-size:12px">Awaiting interaction...</div>
+    </div>
+
+    <div class="analysis-item" id="customerMemory" style="display:none">
+      <div class="analysis-label">🧠 Customer Memory</div>
+      <div class="analysis-value" id="memoryValue" style="font-size:12px;color:#aaa"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Clock
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toLocaleString('en-IN');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Set demo message
+function setDemo(name, id, msg) {
+  document.getElementById('custName').value = name;
+  document.getElementById('custId').value = id;
+  document.getElementById('msgInput').value = msg;
+  document.getElementById('msgInput').focus();
+}
+
+// Add message to chat
+function addMessage(text, type, sender) {
+  const box = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `message msg-${type}`;
+  div.innerHTML = `<div class="msg-sender">${sender}</div>${text}`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+
+// Flash agent card
+function flashAgent(agentName) {
+  const map = {
+    'GUARDIAN': 'agentGuardian',
+    'CLOSER': 'agentCloser',
+    'SUPPORT': 'agentSupport',
+    'EMPATH': 'agentEmpath',
+    'ORACLE': 'agentOracle',
+    'ANALYST': 'agentAnalyst'
+  };
+  const card = document.getElementById(map[agentName]);
+  if (card) {
+    card.style.transform = 'scale(1.1)';
+    card.style.boxShadow = '0 0 30px currentColor';
+    setTimeout(() => {
+      card.style.transform = 'scale(1)';
+      card.style.boxShadow = '';
+    }, 1500);
+  }
+}
+
+// Update agent analysis panel
+function updateAnalysis(data) {
+  // Emotion
+  const emotionColors = { angry: '#f44', sad: '#fa4', happy: '#00ff88', neutral: '#4af' };
+  const ec = emotionColors[data.emotion.emotion] || '#fff';
+  document.getElementById('emotionValue').innerHTML =
+    `<span style="color:${ec};font-size:20px">${data.emotion.emoji}</span> 
+     <strong style="color:${ec}">${data.emotion.emotion.toUpperCase()}</strong> 
+     <span style="color:#666;font-size:12px">(${Math.round(data.emotion.score * 100)}% confidence)</span>`;
+
+  // Votes
+  const votes = data.votes;
+  const maxVote = Math.max(...Object.values(votes));
+  const agentColors = { GUARDIAN: '#fa4', CLOSER: '#00ff88', SUPPORT: '#4af' };
+  let votesHTML = '';
+  for (const [agent, score] of Object.entries(votes)) {
+    const pct = maxVote > 0 ? (score / maxVote) * 100 : 0;
+    const color = agentColors[agent] || '#fff';
+    votesHTML += `
+      <div class="vote-bar-row">
+        <div class="vote-bar-label" style="color:${color}">${agent}</div>
+        <div class="vote-bar-track">
+          <div class="vote-bar-fill" style="width:${pct}%;background:${color}"></div>
+        </div>
+        <div class="vote-bar-num">${score}</div>
+      </div>`;
+  }
+  document.getElementById('voteBars').innerHTML = votesHTML;
+
+  // Winner
+  const winColors = { GUARDIAN: '#fa4', CLOSER: '#00ff88', SUPPORT: '#4af' };
+  const wc = winColors[data.winning_agent] || '#fff';
+  document.getElementById('winnerValue').innerHTML =
+    `<span class="winner-badge" style="background:${wc}22;color:${wc};border:1px solid ${wc}">
+      🏆 ${data.winning_agent} WINS
+    </span>`;
+  flashAgent(data.winning_agent);
+  flashAgent('EMPATH');
+  flashAgent('ORACLE');
+  flashAgent('ANALYST');
+
+  // Churn
+  const churnBefore = data.churn_risk_before;
+  const churnAfter = data.churn_risk_after;
+  const churnColor = churnAfter >= 70 ? '#f44' : churnAfter >= 40 ? '#fa4' : '#00ff88';
+  document.getElementById('churnValue').innerHTML =
+    `<span style="color:${churnColor};font-size:22px;font-weight:900">${churnAfter}%</span>
+     <span style="color:#666;font-size:12px"> ${churnBefore !== churnAfter ? `(was ${churnBefore}% → saved!)` : ''}</span>
+     <br><span style="font-size:11px;color:#888">${data.prediction}</span>`;
+  document.getElementById('churnBar').style.width = churnAfter + '%';
+  document.getElementById('churnBar').style.background = churnColor;
+
+  // Action
+  document.getElementById('actionValue').innerHTML =
+    `✅ ${data.action_taken || 'Query resolved'} <br>
+     <span style="color:#666;font-size:11px">Oracle level: ${data.oracle_level}</span>`;
+}
+
+// Update stats
+async function updateStats() {
+  try {
+    const res = await fetch('http://localhost:5000/dashboard');
+    const data = await res.json();
+    document.getElementById('statActive').textContent = data.stats.active_conversations;
+    document.getElementById('statRevenue').textContent = '₹' + data.stats.revenue_saved.toLocaleString('en-IN');
+    document.getElementById('statDeals').textContent = data.stats.deals_closed;
+    document.getElementById('statResolved').textContent = data.stats.complaints_resolved;
+  } catch(e) {}
+}
+setInterval(updateStats, 3000);
+
+// SEND MESSAGE
+async function sendMessage() {
+  const name = document.getElementById('custName').value || 'Customer';
+  const id = document.getElementById('custId').value || 'C001';
+  const msg = document.getElementById('msgInput').value.trim();
+  if (!msg) return;
+
+  // Show customer message
+  addMessage(msg, 'customer', `👤 ${name}`);
+  document.getElementById('msgInput').value = '';
+
+  // Disable button and show thinking
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.textContent = '🤔 Agents Voting...';
+  const thinkingEl = addMessage('🤖 All 6 agents analyzing... voting in progress...', 'thinking', 'NEURODESK');
+
+  try {
+    const res = await fetch('http://localhost:5000/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customer_id: id, customer_name: name, message: msg })
+    });
+
+    const data = await res.json();
+
+    // Remove thinking message
+    thinkingEl.remove();
+
+    if (data.error) {
+      addMessage('❌ Error: ' + data.error, 'ai', 'SYSTEM');
+    } else {
+      // Show AI response
+      const agentLabel = { GUARDIAN: '🛡️ GUARDIAN', CLOSER: '💰 CLOSER', SUPPORT: '💬 SUPPORT' };
+      addMessage(data.response, 'ai', agentLabel[data.winning_agent] || 'NEURODESK');
+
+      // Show compensation if given
+      if (data.compensation) {
+        addMessage(data.compensation, 'compensation', '🎁 AUTO-ACTION');
+      }
+
+      // Update analysis panel
+      updateAnalysis(data);
+
+      // Update stats
+      updateStats();
+    }
+
+  } catch(e) {
+    thinkingEl.remove();
+    addMessage('❌ Cannot connect to backend. Make sure Python server is running on port 5000.', 'ai', 'SYSTEM');
+  }
+
+  // Re-enable button
+  btn.disabled = false;
+  btn.textContent = '⚡ SEND TO NEURODESK AI';
+}
+</script>
+</body>
+</html>
